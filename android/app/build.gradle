@@ -1,0 +1,86 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services"
+}
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+def hasKeystore = false
+if (keystorePropertiesFile.exists()) {
+    try {
+        keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+        hasKeystore = keystoreProperties.containsKey('storeFile') && 
+                      keystoreProperties.containsKey('storePassword') && 
+                      keystoreProperties.containsKey('keyAlias') && 
+                      keystoreProperties.containsKey('keyPassword')
+    } catch (Exception e) {
+        println "Warning: Failed to load keystore.properties: " + e.getMessage()
+    }
+}
+
+if (!hasKeystore) {
+    println "Warning: Missing or incomplete keystore.properties file. Using debug signing configuration."
+}
+
+android {
+    namespace 'com.poolmate.app'
+
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.poolmate.app"
+        minSdk 21
+        targetSdk 34
+        multiDexEnabled true
+        versionCode 1
+        versionName "1.0"
+    }
+
+    signingConfigs {
+        release {
+            if (hasKeystore && keystoreProperties['storeFile'] != null && rootProject.file(keystoreProperties['storeFile']).exists()) {
+                storeFile rootProject.file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            } else if (hasKeystore && keystoreProperties['storeFile'] != null && file(keystoreProperties['storeFile']).exists()) {
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            } else {
+                // Fallback debug signing keys
+                storeFile file('debug.keystore')
+                storePassword 'android'
+                keyAlias 'androiddebugkey'
+                keyPassword 'android'
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.debug
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.20"
+    implementation "androidx.multidex:multidex:2.0.1"
+    implementation platform('com.google.firebase:firebase-bom:32.0.0')
+    implementation 'com.google.firebase:firebase-messaging'
+}

@@ -1,0 +1,42 @@
+// Root-level build.gradle file
+
+// Apply common repositories for all projects
+allprojects {
+    repositories {
+        google() // Google's Maven repository
+        mavenCentral() // Central repository for Gradle dependencies
+    }
+}
+
+// Define build directory structure
+rootProject.buildDir = "../build"
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+// Define a clean task to delete the build directory
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}
+
+// Configure plugin management
+
+// Legacy build script configuration (used by some plugins or Gradle tasks)
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // Android Gradle Plugin
+        classpath 'com.android.tools.build:gradle:8.0.2'
+
+        // Google Services Plugin for Firebase
+        classpath 'com.google.gms:google-services:4.3.15'
+
+        // Add any additional classpath dependencies if required by your project
+    }
+}
